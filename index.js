@@ -5,53 +5,15 @@ const commandLineArgs = require("command-line-args");
 const commandLineUsage = require("command-line-usage");
 require("colors");
 const selectors = require("./selectors");
-const fs = require("fs");
-const crypto = require("crypto");
+const Encryption = require("./encryption");
 
 const logger = (message) => console.log(message);
-
-const encrypt = (path, text) => {
-  const iv = crypto.randomBytes(16);
-
-  const cipher = crypto.createCipheriv(
-    process.env.ALGORITHM,
-    crypto.scryptSync(process.env.SECRET, "salt", 24),
-    iv
-  );
-  var encrypted = cipher.update(text, "utf8", "hex") + cipher.final("hex"); // encrypted text
-
-  fs.writeFileSync(
-    path,
-    JSON.stringify({
-      iv,
-      encrypted,
-    })
-  );
-};
-
-const decrypt = (path) => {
-  try {
-    const decipher = crypto.createDecipheriv(
-      process.env.ALGORITHM,
-      crypto.scryptSync(process.env.SECRET, "salt", 24),
-      Buffer.from(require(path).iv.data)
-    );
-    var decrypted =
-      decipher.update(require(path).encrypted, "hex", "utf8") +
-      decipher.final("utf8"); //deciphered text
-
-    return decrypted;
-  } catch (error) {
-    return null;
-  }
-};
 
 const authenticate = async (page) => {
   logger("Begin Authentication".blue);
 
-  const cookie_path = path.join(__dirname, "cookie.json");
-
-  const cookies = decrypt(cookie_path);
+  const Ciper = new Encryption(path.join(__dirname, "cookie.json"));
+  const cookies = Ciper.decrypt();
 
   if (cookies) {
     await page.setCookie(...JSON.parse(cookies));
@@ -70,7 +32,7 @@ const authenticate = async (page) => {
     await page.click(selectors.authentication.login);
 
     await page.waitForNavigation();
-    encrypt(cookie_path, JSON.stringify(await page.cookies()));
+    Ciper.encrypt(JSON.stringify(await page.cookies()));
   }
 
   logger("Authenticated".green);
@@ -102,10 +64,13 @@ const sync_single_file = async (page, namespace, file_name, progress) => {
       logger(`Successfully synced file: ${file_name}`.green);
       break;
     } else {
-      console.log(`Try (${i + 1}/5) - ${response_text}`.red);
-      const ms = (i + 1) * 1000;
-      console.log(`Sleeping for ${ms}ms before retry`.yellow);
-      await sleep(ms);
+      const try_num = i + 1;
+      logger(`Try (${try_num}/5) - ${response_text}`.red);
+      if (try_num < 5) {
+        const ms = try_num * 1000;
+        logger(`Sleeping for ${ms}ms before retry`.yellow);
+        await sleep(ms);
+      }
     }
   }
 };
@@ -178,6 +143,7 @@ const main = async () => {
     logger("Namespace is required".red);
     return;
   }
+
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
