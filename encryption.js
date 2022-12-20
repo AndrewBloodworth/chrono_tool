@@ -9,7 +9,7 @@ module.exports = class Encryption {
     const iv = crypto.randomBytes(16);
 
     const cipher = crypto.createCipheriv(
-      process.env.ALGORITHM,
+      "aes-192-cbc",
       crypto.scryptSync(process.env.SECRET, "salt", 24),
       iv
     );
@@ -30,7 +30,7 @@ module.exports = class Encryption {
       } = require(this.path);
 
       const decipher = crypto.createDecipheriv(
-        process.env.ALGORITHM,
+        "aes-192-cbc",
         crypto.scryptSync(process.env.SECRET, "salt", 24),
         Buffer.from(data)
       );
