@@ -44,6 +44,13 @@ module.exports = class ChronoTool {
         type: Boolean,
         description: "Run a partner tick after syncing all files to datastore.",
       },
+      {
+        name: "openchronoui",
+        alias: "o",
+        type: String,
+        description:
+          "Open chrono ui after sync is complete. Optionally include the job to search.",
+      },
     ];
     this.guide = [
       {
@@ -86,8 +93,12 @@ module.exports = class ChronoTool {
     }
 
     if (!options.namespace) {
-      this.partner = process.cwd().split("/").pop();
-      if (this.partner === "chrono_tool") {
+      const current_working_directory = process.cwd().split("/");
+      this.partner = current_working_directory.pop();
+      if (
+        current_working_directory.pop() !==
+        process.env.LOCAL_PARTNER_REPO_DIRECTORY
+      ) {
         this.logger(`Namespace is required.`.red);
         process.exit(1);
       }
@@ -116,6 +127,8 @@ module.exports = class ChronoTool {
         ].filter((file) => file)
       )
     );
+
+    this.chronoui = options.openchronoui;
 
     this.browser = await puppeteer.launch();
     this.page = await this.browser.newPage();
@@ -164,7 +177,10 @@ module.exports = class ChronoTool {
   }
 
   async sync_files() {
-    if (this.files.length === 0) return;
+    if (this.files.length === 0) {
+      this.logger(`No files to sync.`.yellow);
+      return;
+    }
 
     this.logger(
       `File Sync:\n${this.files.map((file) => `- ${file}`).join("\n")}`.blue
@@ -229,6 +245,14 @@ module.exports = class ChronoTool {
   }
 
   async close() {
+    if (this.chronoui !== undefined) {
+      let url = `https://bluecore.com/admin/chrono/${this.partner}?filter=data_sync`;
+      if (typeof this.chronoui === "string") {
+        url += `&job_runs=10&name=${this.chronoui}&page_size=10`;
+      }
+      this.logger(`Open Chrono UI`.blue);
+      this.execSync(`open "${url}"`);
+    }
     await this.browser.close();
   }
 };
