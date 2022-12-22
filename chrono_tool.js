@@ -195,26 +195,31 @@ module.exports = class ChronoTool {
   async sync_single_file(file_name, progress) {
     this.logger(`Attempt to sync ${file_name} ${progress}`.yellow);
     for (let i = 0; i < 5; i++) {
-      await this.page.goto(selectors.pages.api_console);
+      let response_text = "";
+      try {
+        await this.page.goto(selectors.pages.api_console);
 
-      await this.page.click(selectors.navigation.workflow);
+        await this.page.click(selectors.navigation.workflow);
 
-      await this.page.type(
-        selectors.forms.copy_single_file.partner,
-        this.partner
-      );
-      await this.page.type(
-        selectors.forms.copy_single_file.file_path,
-        file_name
-      );
+        await this.page.type(
+          selectors.forms.copy_single_file.partner,
+          this.partner
+        );
+        await this.page.type(
+          selectors.forms.copy_single_file.file_path,
+          file_name
+        );
 
-      await this.page.click(selectors.forms.copy_single_file.button);
+        await this.page.click(selectors.forms.copy_single_file.button);
 
-      const response = await this.page.waitForResponse(
-        selectors.responses.copy_single_file_to_datastore
-      );
+        const response = await this.page.waitForResponse(
+          selectors.responses.copy_single_file_to_datastore
+        );
 
-      const response_text = await response.text();
+        response_text = await response.text();
+      } catch (error) {
+        response_text = error.message;
+      }
       if (response_text === "File sync complete") {
         this.logger(`Successfully synced file: ${file_name}`.green);
         break;
