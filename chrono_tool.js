@@ -99,7 +99,10 @@ module.exports = class ChronoTool {
         current_working_directory.pop() !==
         process.env.LOCAL_PARTNER_REPO_DIRECTORY
       ) {
-        this.logger(`Namespace is required.`.red);
+        this.logger(
+          `Namespace is required.\n1. If you're running this tool from a folder that is not located in your main partner repo directory, please use the -n flag to specify the namespace.\n2. Make sure that the LOCAL_PARTNER_REPO_DIRECTORY environment variable is set.`
+            .red
+        );
         process.exit(1);
       }
     } else {
