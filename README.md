@@ -8,7 +8,7 @@
   - Add bluecore.com/admin credentials
     - `USERNAME=email@email.com`
     - `PASSWORD=mysecretpassword`
-  - You can manually supply the namespace using `-n namespace` or the tool can use the folder name you are current in (assuming you are running this tool from a cloned partner repo). To make this work you must add an environment variable that designates the folder that is used locally to store all of the cloned partner repos (used to make sure that we aren't pulling random folder names as the partner namespace). Add the name of the folder you use for your partner repos. EX ~/bcroot/`partner_repos`/{namespace}
+  - You can manually supply the namespace using `-n namespace` or the tool can use the folder name you are currently in (assuming you are running this tool from a cloned partner repo). To make this work, you must add an environment variable that designates the folder name used to store all of the cloned partner repos (protect against pulling random folder names as the partner namespace). Add the name of the folder you use for your partner repos. EX ~/bcroot/`partner_repos`/namespace/
     - `LOCAL_PARTNER_REPO_DIRECTORY=partner_repos`
   - Add a secret key to encrypt and store the bluecore.com/admin credentials locally
     - `SECRET=anystringatall`
